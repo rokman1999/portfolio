@@ -1,0 +1,11 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#F5F5F2"/>
+  <circle cx="1020" cy="90" r="210" fill="#FFE3D2"/>
+  <circle cx="1020" cy="90" r="116" fill="#F26A21"/>
+  <path d="M72 72H1128" stroke="#D8D8D2"/>
+  <path d="M72 558H1128" stroke="#D8D8D2"/>
+  <text x="72" y="125" fill="#F26A21" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">HAN YOUNGROK · BX DESIGNER</text>
+  <text x="72" y="285" fill="#171717" font-family="Arial, sans-serif" font-size="76" font-weight="600" letter-spacing="-4">Designing Trust</text>
+  <text x="72" y="370" fill="#171717" font-family="Arial, sans-serif" font-size="76" font-weight="600" letter-spacing="-4">into Brand Experience.</text>
+  <text x="72" y="510" fill="#686864" font-family="Arial, sans-serif" font-size="23">Brand System · Touchpoint · Governance</text>
+</svg>

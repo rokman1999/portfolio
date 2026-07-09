@@ -1,0 +1,20 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="#DEDDD7"/>
+  <path d="M0 164L800 0V538L0 725V164Z" fill="#E9E8E2"/>
+  <circle cx="588" cy="252" r="114" fill="#F26A21"/>
+  <circle cx="588" cy="252" r="156" stroke="#C6C4BD"/>
+  <circle cx="588" cy="252" r="206" stroke="#D0CEC7"/>
+  <path d="M72 748H728" stroke="#B8B6AF"/>
+  <path d="M72 796H728" stroke="#B8B6AF"/>
+  <path d="M72 844H728" stroke="#B8B6AF"/>
+  <path d="M72 892H728" stroke="#B8B6AF"/>
+  <path d="M120 700V928" stroke="#B8B6AF"/>
+  <path d="M264 700V928" stroke="#B8B6AF"/>
+  <path d="M408 700V928" stroke="#B8B6AF"/>
+  <path d="M552 700V928" stroke="#B8B6AF"/>
+  <path d="M696 700V928" stroke="#B8B6AF"/>
+  <text x="66" y="172" fill="#171717" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="2">HAN YOUNGROK</text>
+  <text x="66" y="210" fill="#656560" font-family="Arial, sans-serif" font-size="16" letter-spacing="1.5">BRAND EXPERIENCE DESIGNER</text>
+  <text x="62" y="655" fill="#171717" font-family="Georgia, serif" font-size="238" letter-spacing="-22">HYR</text>
+  <text x="580" y="942" fill="#656560" font-family="Arial, sans-serif" font-size="15" letter-spacing="1.5">SEOUL, KR</text>
+</svg>
