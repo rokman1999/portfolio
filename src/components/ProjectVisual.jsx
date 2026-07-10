@@ -22,9 +22,33 @@ export default function ProjectVisual({ type }) {
       {type === "offline" && (
         <>
           <div className="space-wall">
-            <span>goorm</span>
+            <div className="space-wall__meta">
+              <span>BRAND SPACE</span>
+              <span>SEOUL · 01</span>
+            </div>
+            <div className="space-wall__title">
+              <strong>SPACE</strong>
+              <span>SYSTEM</span>
+            </div>
+            <p>WORK / LEARN / CONNECT</p>
           </div>
-          <div className="space-sign">G</div>
+          <div className="space-sign">
+            <span>G</span>
+            <small>
+              WELCOME
+              <br />
+              LOUNGE
+            </small>
+          </div>
+          <div className="space-wayfinding">
+            <span>02</span>
+            <strong>→</strong>
+            <small>
+              STUDIO
+              <br />
+              COMMUNITY
+            </small>
+          </div>
           <div className="space-floor" />
         </>
       )}

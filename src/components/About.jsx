@@ -9,7 +9,9 @@ export default function About() {
           eyebrow="01 · About"
           title={
             <>
-              좋은 디자인은 결과물에 머물지 않고,
+              좋은 디자인은
+              <br />
+              결과물에 머물지 않고,
               <br />
               <em className="korean-emphasis">운영 가능한 구조</em>가 됩니다.
             </>

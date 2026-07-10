@@ -11,13 +11,14 @@ export default function ResumeSnapshot() {
         />
         <div className="resume__grid">
           <div className="resume__profile">
-            <div className="resume-monogram" aria-hidden="true">
-              H<br />Y<br />R
+            <div className="resume-photo">
+              <img src="assets/profile-hanyoungrok.png" alt="한영록 프로필 사진" />
             </div>
             <div>
-              <h3>HAN YOUNGROK</h3>
+              <p className="resume__name-ko">한영록</p>
+              <h3>HAN YOUNG ROK</h3>
               <p>Brand / Content / BX Designer</p>
-              <span>Seoul, KR · 5+ Years</span>
+              <span>Seoul, KR · 6+ Years</span>
             </div>
           </div>
           <div className="timeline">

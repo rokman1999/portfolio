@@ -1,5 +1,3 @@
-import { profile } from "../data/profile";
-import ArrowIcon from "./ArrowIcon";
 import ProjectVisual from "./ProjectVisual";
 
 export default function ProjectCard({ project }) {
@@ -27,10 +25,6 @@ export default function ProjectCard({ project }) {
             </dd>
           </div>
         </dl>
-        <a href={profile.portfolioPath} download>
-          <span>View in Portfolio PDF</span>
-          <ArrowIcon diagonal />
-        </a>
       </div>
     </article>
   );

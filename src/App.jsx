@@ -2,9 +2,7 @@ import { useEffect } from "react";
 import About from "./components/About";
 import Contact from "./components/Contact";
 import FitMatrix from "./components/FitMatrix";
-import Header from "./components/Header";
 import Hero from "./components/Hero";
-import PortfolioDownload from "./components/PortfolioDownload";
 import ResumeSnapshot from "./components/ResumeSnapshot";
 import SelectedWorks from "./components/SelectedWorks";
 import WhyHyundai from "./components/WhyHyundai";
@@ -34,7 +32,6 @@ export default function App() {
       <a className="skip-link" href="#main">
         본문으로 바로가기
       </a>
-      <Header />
       <main id="main">
         <Hero />
         <About />
@@ -43,7 +40,6 @@ export default function App() {
         <SelectedWorks />
         <WorkProcess />
         <ResumeSnapshot />
-        <PortfolioDownload />
         <Contact />
       </main>
     </>
