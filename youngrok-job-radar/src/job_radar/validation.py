@@ -14,10 +14,15 @@ FULL_TIME_TERMS = ("정규직", "FULL_TIME", "FULL TIME", "FULL-TIME")
 class ValidationResult:
     accepted: bool
     reason: str = ""
+    employment_unclear: bool = False
 
 
 def validate_job(
-    job: Job, preferences: Preferences, *, today: date | None = None
+    job: Job,
+    preferences: Preferences,
+    *,
+    today: date | None = None,
+    allow_unclear_employment: bool = False,
 ) -> ValidationResult:
     current_date = today or date.today()
     title = job.title.casefold()
@@ -34,13 +39,14 @@ def validate_job(
         return ValidationResult(False, "마감 문구 확인")
     if any(keyword.casefold() in employment for keyword in preferences.exclude_employment_keywords):
         return ValidationResult(False, "비정규 고용형태")
-    if not any(term.casefold() in employment for term in FULL_TIME_TERMS):
+    employment_unclear = not any(term.casefold() in employment for term in FULL_TIME_TERMS)
+    if employment_unclear and not allow_unclear_employment:
         return ValidationResult(False, "정규직 여부 불명확")
     if any(keyword.casefold() in title for keyword in preferences.exclude_title_keywords):
         return ValidationResult(False, "제외 직무명")
     if not any(keyword.casefold() in title for keyword in preferences.include_titles):
         return ValidationResult(False, "선호 직무명과 불일치")
-    return ValidationResult(True)
+    return ValidationResult(True, employment_unclear=employment_unclear)
 
 
 def analysis_is_sendable(job: Job, *, min_score: int) -> bool:

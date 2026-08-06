@@ -7,7 +7,7 @@ from job_radar.analyzer import Analyzer
 from job_radar.collectors.base import Collector
 from job_radar.config import Preferences
 from job_radar.database import Repository
-from job_radar.models import JobStatus
+from job_radar.models import JobAnalysis, JobStatus
 from job_radar.telegram import TelegramClient, format_job
 from job_radar.validation import validate_job
 
@@ -42,7 +42,11 @@ class JobRadar:
                 continue
             for job in jobs:
                 counts["collected"] += 1
-                validation = validate_job(job, self.preferences)
+                validation = validate_job(
+                    job,
+                    self.preferences,
+                    allow_unclear_employment=True,
+                )
                 if not validation.accepted:
                     counts["rejected"] += 1
                     logger.info(
@@ -58,6 +62,8 @@ class JobRadar:
                     continue
                 counts["accepted"] += 1
                 analysis = self.analyzer.analyze(job, self.preferences)
+                if validation.employment_unclear:
+                    analysis = _mark_employment_unclear(analysis)
                 self.repository.save_analysis(job_id, analysis)
                 counts["analyzed"] += 1
         logger.info(
@@ -84,3 +90,10 @@ class JobRadar:
                 self.repository.update_status(job.id, JobStatus.SENT)
         logger.info("send_complete", extra={"sent": len(jobs)})
         return len(jobs)
+
+
+def _mark_employment_unclear(analysis: JobAnalysis) -> JobAnalysis:
+    data = analysis.model_dump()
+    data["is_full_time"] = None
+    data["risks"] = ["정규직 여부를 공고에서 확인해야 함", *analysis.risks][:4]
+    return JobAnalysis.model_validate(data)

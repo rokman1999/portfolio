@@ -18,6 +18,7 @@ def serve(radar: JobRadar) -> None:
     scheduler.add_job(
         _guarded(radar, radar.collect_and_analyze),
         CronTrigger(
+            day_of_week="mon-fri",
             hour=_hour(schedule.collect_time),
             minute=_minute(schedule.collect_time),
             timezone=schedule.timezone,
@@ -29,6 +30,7 @@ def serve(radar: JobRadar) -> None:
     scheduler.add_job(
         _guarded(radar, radar.send_pending),
         CronTrigger(
+            day_of_week="mon-fri",
             hour=_hour(schedule.send_time),
             minute=_minute(schedule.send_time),
             timezone=schedule.timezone,
