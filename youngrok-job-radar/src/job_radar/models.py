@@ -1,0 +1,117 @@
+from __future__ import annotations
+
+import re
+import unicodedata
+from datetime import date, datetime
+from enum import StrEnum
+from typing import Literal
+
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+
+class JobStatus(StrEnum):
+    NEW = "new"
+    SENT = "sent"
+    SAVED = "saved"
+    IGNORED = "ignored"
+    APPLIED = "applied"
+    CLOSED = "closed"
+
+
+class Job(BaseModel):
+    id: int | None = None
+    company: str
+    title: str
+    url: str
+    source: str
+    employment_type: str | None = None
+    experience_min: int | None = None
+    experience_max: int | None = None
+    education: str | None = None
+    location: str | None = None
+    posted_at: date | None = None
+    deadline: date | None = None
+    status: JobStatus = JobStatus.NEW
+    raw_text: str
+    detail_reachable: bool = True
+    apply_available: bool = False
+    score: int | None = None
+    analysis_json: str | None = None
+    fingerprint: str = ""
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    sent_at: datetime | None = None
+
+    @field_validator("url")
+    @classmethod
+    def require_https_url(cls, value: str) -> str:
+        if not value.startswith("https://"):
+            raise ValueError("공고 URL은 HTTPS여야 합니다.")
+        return value
+
+    @model_validator(mode="after")
+    def populate_fingerprint(self) -> Job:
+        if not self.fingerprint:
+            self.fingerprint = make_fingerprint(self.company, self.title, self.location or "")
+        return self
+
+
+class SalaryEstimate(BaseModel):
+    min: int | None
+    max: int | None
+    confidence: Literal["low", "medium", "high"]
+    evidence: str
+
+
+class JobAnalysis(BaseModel):
+    is_open: bool
+    is_full_time: bool
+    is_uiux_role: bool
+    is_excluded_company: bool
+    uiux_ratio: int = Field(ge=0, le=100)
+    bx_ratio: int = Field(ge=0, le=100)
+    content_ratio: int = Field(ge=0, le=100)
+    role_fit_score: int = Field(ge=0, le=35)
+    company_score: int = Field(ge=0, le=30)
+    application_score: int = Field(ge=0, le=25)
+    risk_penalty: int = Field(ge=-20, le=0)
+    total_score: int = Field(ge=0, le=90)
+    salary_estimate: SalaryEstimate
+    company_reputation: str
+    recommendation: Literal["당장 지원", "적극 검토", "조건 확인 후 지원", "발송 제외"]
+    fit_reasons: list[str]
+    risks: list[str]
+
+    @model_validator(mode="after")
+    def calculate_total_and_recommendation(self) -> JobAnalysis:
+        total = max(
+            0,
+            self.role_fit_score + self.company_score + self.application_score + self.risk_penalty,
+        )
+        self.total_score = total
+        if (
+            not self.is_open
+            or not self.is_full_time
+            or self.is_uiux_role
+            or self.uiux_ratio >= 30
+            or self.is_excluded_company
+        ):
+            self.recommendation = "발송 제외"
+        elif total >= 85:
+            self.recommendation = "당장 지원"
+        elif total >= 75:
+            self.recommendation = "적극 검토"
+        elif total >= 65:
+            self.recommendation = "조건 확인 후 지원"
+        else:
+            self.recommendation = "발송 제외"
+        return self
+
+
+def normalize_fingerprint_part(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"[^0-9a-z가-힣]", "", normalized)
+
+
+def make_fingerprint(company: str, title: str, location: str) -> str:
+    return "|".join(normalize_fingerprint_part(part) for part in (company, title, location))

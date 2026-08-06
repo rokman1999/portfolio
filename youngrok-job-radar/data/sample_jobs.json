@@ -1,0 +1,42 @@
+[
+  {
+    "company": "신한라이프케어",
+    "title": "브랜드 디자이너",
+    "url": "https://example.com/jobs/brand-designer",
+    "source": "sample",
+    "employment_type": "정규직",
+    "experience_min": 5,
+    "education": "전문학사 이상",
+    "location": "서울",
+    "deadline": "2099-12-31",
+    "raw_text": "금융그룹 계열사 브랜드 디자이너 정규직 채용. 브랜드 가이드라인 운영, 온·오프라인 캠페인, 콘텐츠, 공간 브랜딩, 굿즈 제작을 담당합니다. 생성형 AI와 Figma 활용 경험을 우대합니다. 포트폴리오 제출 필수. 유연근무와 복지제도를 운영합니다. 공고에 공개된 보상 범위는 연봉 5200~5800만원입니다.",
+    "detail_reachable": true,
+    "apply_available": true
+  },
+  {
+    "company": "샘플테크",
+    "title": "UI/UX 디자이너",
+    "url": "https://example.com/jobs/uiux-designer",
+    "source": "sample",
+    "employment_type": "정규직",
+    "experience_min": 5,
+    "location": "서울",
+    "deadline": "2099-12-31",
+    "raw_text": "앱 화면 설계, 사용자 플로우, 프로토타이핑과 디자인 시스템 구축을 담당합니다.",
+    "detail_reachable": true,
+    "apply_available": true
+  },
+  {
+    "company": "샘플브랜드",
+    "title": "브랜드 디자이너",
+    "url": "https://example.com/jobs/contract-brand-designer",
+    "source": "sample",
+    "employment_type": "계약직",
+    "experience_min": 5,
+    "location": "서울",
+    "deadline": "2099-12-31",
+    "raw_text": "브랜드 콘텐츠를 제작하는 1년 계약직입니다.",
+    "detail_reachable": true,
+    "apply_available": true
+  }
+]
