@@ -37,3 +37,24 @@ def test_closed_or_contract_job_is_rejected(preferences: Preferences) -> None:
     contract = validate_job(_job(employment_type="계약직"), preferences)
     assert not closed.accepted
     assert not contract.accepted
+
+
+def test_unclear_employment_is_only_allowed_as_fallback(preferences: Preferences) -> None:
+    job = _job(employment_type=None)
+
+    assert not validate_job(job, preferences).accepted
+    fallback = validate_job(job, preferences, allow_unclear_employment=True)
+
+    assert fallback.accepted
+    assert fallback.employment_unclear
+
+
+def test_contract_job_is_rejected_even_in_fallback_mode(preferences: Preferences) -> None:
+    result = validate_job(
+        _job(employment_type="계약직"),
+        preferences,
+        allow_unclear_employment=True,
+    )
+
+    assert not result.accepted
+    assert result.reason == "비정규 고용형태"

@@ -106,11 +106,10 @@ class Repository:
         if not analysis.is_open:
             status = JobStatus.CLOSED.value
         elif (
-            not analysis.is_full_time
+            analysis.is_full_time is False
             or analysis.is_uiux_role
             or analysis.uiux_ratio >= 30
             or analysis.is_excluded_company
-            or analysis.recommendation == "발송 제외"
         ):
             status = JobStatus.IGNORED.value
         else:
@@ -129,12 +128,19 @@ class Repository:
             rows = self.connection.execute(
                 """
                 SELECT * FROM jobs
-                WHERE status = 'new' AND score >= ? AND analysis_json IS NOT NULL
-                ORDER BY score DESC, created_at ASC LIMIT ?
-                """,
-                (min_score, limit),
+                WHERE status = 'new' AND analysis_json IS NOT NULL
+                ORDER BY score DESC, created_at ASC
+                """
             ).fetchall()
-        return [_row_to_job(row) for row in rows]
+        jobs = [_row_to_job(row) for row in rows]
+        strict = [
+            job
+            for job in jobs
+            if job.score is not None
+            and job.score >= min_score
+            and analysis_for(job).is_full_time is True
+        ]
+        return strict[:limit] if strict else jobs[:1]
 
     def get_job(self, job_id: int) -> Job | None:
         with self.lock:

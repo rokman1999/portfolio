@@ -65,7 +65,7 @@ class SalaryEstimate(BaseModel):
 
 class JobAnalysis(BaseModel):
     is_open: bool
-    is_full_time: bool
+    is_full_time: bool | None
     is_uiux_role: bool
     is_excluded_company: bool
     uiux_ratio: int = Field(ge=0, le=100)
@@ -91,7 +91,7 @@ class JobAnalysis(BaseModel):
         self.total_score = total
         if (
             not self.is_open
-            or not self.is_full_time
+            or self.is_full_time is False
             or self.is_uiux_role
             or self.uiux_ratio >= 30
             or self.is_excluded_company

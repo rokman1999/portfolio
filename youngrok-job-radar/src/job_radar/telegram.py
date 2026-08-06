@@ -133,12 +133,20 @@ def format_job(job: Job, rank: int) -> str:
     condition = " · ".join(
         filter(None, [job.employment_type, _experience(job), job.location or "근무지 확인 필요"])
     )
+    employment_warning = (
+        "\n\n<b>⚠️ 확인 필요</b>\n정규직 여부가 명확하지 않으니 지원 전에 확인하세요."
+        if analysis.is_full_time is None
+        else ""
+    )
+    recommendation = (
+        "조건 확인 후 지원" if analysis.is_full_time is None else analysis.recommendation
+    )
     return (
         f"<b>🔥 오늘의 지원 추천 {rank}순위</b>\n\n"
         f"<b>{html.escape(job.company)}</b>\n"
         f"{html.escape(job.title)}\n\n"
-        f"<b>적합도</b>\n{analysis.total_score}점 · {analysis.recommendation}\n\n"
-        f"<b>조건</b>\n{html.escape(condition)}\n\n"
+        f"<b>적합도</b>\n{analysis.total_score}점 · {recommendation}\n\n"
+        f"<b>조건</b>\n{html.escape(condition)}{employment_warning}\n\n"
         f"<b>왜 추천하나</b>\n{reasons}\n\n"
         f"<b>연봉 신호</b>\n{salary}\n{html.escape(estimate.evidence)}\n\n"
         f"<b>회사 평판</b>\n{html.escape(analysis.company_reputation)}\n\n"

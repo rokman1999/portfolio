@@ -4,17 +4,19 @@ from job_radar.database import Repository
 from job_radar.models import Job, JobAnalysis, JobStatus, SalaryEstimate
 
 
-def _job() -> Job:
-    return Job(
-        company="테스트회사",
-        title="브랜드 디자이너",
-        url="https://example.com/first",
-        source="test",
-        employment_type="정규직",
-        location="서울",
-        raw_text="브랜드 가이드라인",
-        apply_available=True,
-    )
+def _job(**overrides: object) -> Job:
+    values: dict[str, object] = {
+        "company": "테스트회사",
+        "title": "브랜드 디자이너",
+        "url": "https://example.com/first",
+        "source": "test",
+        "employment_type": "정규직",
+        "location": "서울",
+        "raw_text": "브랜드 가이드라인",
+        "apply_available": True,
+    }
+    values.update(overrides)
+    return Job.model_validate(values)
 
 
 def _analysis() -> JobAnalysis:
@@ -75,5 +77,48 @@ def test_uiux_analysis_is_never_queued(tmp_path: Path) -> None:
         assert stored is not None
         assert stored.status is JobStatus.IGNORED
         assert repository.pending_jobs(min_score=0, limit=10) == []
+    finally:
+        repository.close()
+
+
+def test_pending_jobs_falls_back_to_one_unclear_employment(tmp_path: Path) -> None:
+    repository = Repository("sqlite:///jobs.db", base_dir=tmp_path)
+    try:
+        job_id, _ = repository.upsert_job(
+            _job(employment_type=None, url="https://example.com/unclear")
+        )
+        unclear = _analysis().model_copy(update={"is_full_time": None})
+        repository.save_analysis(job_id, unclear)
+
+        jobs = repository.pending_jobs(min_score=90, limit=7)
+
+        assert len(jobs) == 1
+        assert jobs[0].id == job_id
+    finally:
+        repository.close()
+
+
+def test_pending_jobs_prefers_strict_matches_over_unclear_fallback(tmp_path: Path) -> None:
+    repository = Repository("sqlite:///jobs.db", base_dir=tmp_path)
+    try:
+        unclear_id, _ = repository.upsert_job(
+            _job(
+                company="불명확회사",
+                employment_type=None,
+                url="https://example.com/unclear",
+            )
+        )
+        strict_id, _ = repository.upsert_job(
+            _job(company="정규직회사", url="https://example.com/strict")
+        )
+        repository.save_analysis(
+            unclear_id,
+            _analysis().model_copy(update={"is_full_time": None}),
+        )
+        repository.save_analysis(strict_id, _analysis())
+
+        jobs = repository.pending_jobs(min_score=72, limit=7)
+
+        assert [job.id for job in jobs] == [strict_id]
     finally:
         repository.close()

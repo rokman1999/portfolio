@@ -3,8 +3,8 @@ name: Youngrok Job Radar
 on:
   workflow_dispatch:
   schedule:
-    # 23:25 UTC = 08:25 KST (next day)
-    - cron: "25 23 * * *"
+    # Sunday-Thursday 23:25 UTC = Monday-Friday 08:25 KST
+    - cron: "25 23 * * 0-4"
 
 concurrency:
   group: youngrok-job-radar
