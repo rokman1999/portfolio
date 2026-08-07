@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from pytest import MonkeyPatch
+
 from job_radar.analyzer import LocalAnalyzer
 from job_radar.config import Preferences
 from job_radar.database import Repository
@@ -26,3 +28,20 @@ def test_sample_pipeline_selects_only_eligible_job(
 
     assert counts == {"collected": 3, "accepted": 1, "rejected": 2, "analyzed": 1}
     assert sent == 1
+
+
+def test_send_skips_when_a_job_was_already_sent_today(
+    tmp_path: Path, preferences: Preferences, monkeypatch: MonkeyPatch
+) -> None:
+    repository = Repository("sqlite:///jobs.db", base_dir=tmp_path)
+    radar = JobRadar(
+        collectors=[],
+        analyzer=LocalAnalyzer(),
+        repository=repository,
+        preferences=preferences,
+    )
+    monkeypatch.setattr(repository, "has_sent_today", lambda timezone: True)
+    try:
+        assert radar.send_pending() == 0
+    finally:
+        repository.close()

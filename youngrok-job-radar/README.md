@@ -5,7 +5,7 @@
 
 ## 동작 흐름
 
-1. 08:20 KST에 원티드와 리멤버의 공개 검색/상세 페이지를 확인합니다.
+1. 08:20 KST에 원티드·리멤버·사람인의 공개 검색/상세 페이지를 확인합니다.
 2. 상세 페이지 접근, 지원하기 버튼, 마감일, 정규직 여부를 먼저 검증합니다.
 3. 직무명이 선호 목록에 포함되고 명백한 UI/UX 직무가 아닌 공고만 AI로 분석합니다.
 4. 공고에 있는 근거만으로 UI/UX 비중, 적합도, 회사 신호, 연봉 신뢰도를 산출합니다.
@@ -155,9 +155,10 @@ FastAPI, 관리 대시보드, 피드백 기반 자동학습은 MVP 범위에서 
 
 ## GitHub Actions 무료 운영
 
-저장소 루트의 `.github/workflows/job-radar.yml`은 평일 KST 08:25에 실행을 시작합니다.
-의존성 설치와 수집이 끝나는 08:30 전후에 텔레그램 메시지가 도착합니다. GitHub 실행이
-지연되면 발송도 늦어질 수 있습니다.
+저장소 루트의 `.github/workflows/job-radar.yml`은 평일 KST 08:25에 실행을 시작하고,
+예약 누락에 대비해 09:05에 한 번 더 시도합니다. 첫 실행에서 공고를 보냈다면 SQLite의
+`sent_at`을 확인해 백업 실행은 발송 없이 종료합니다. GitHub 실행이 지연되면 발송도
+늦어질 수 있습니다.
 
 Actions Secrets에는 다음 값을 등록해야 합니다.
 
@@ -167,9 +168,12 @@ Actions Secrets에는 다음 값을 등록해야 합니다.
 - `TELEGRAM_CHAT_ID`
 - `TELEGRAM_ADMIN_CHAT_ID`
 
-Actions 환경에서는 `ENABLED_COLLECTORS=remember`, `TELEGRAM_INTERACTIVE=false`를 사용합니다.
-원티드는 GitHub 호스팅 브라우저 요청을 차단하므로 제외하고, 상시 콜백 프로세스가 없기
-때문에 텔레그램 상태 버튼 대신 공고 링크만 표시합니다.
+Actions 환경에서는 `ENABLED_COLLECTORS=remember,saramin`, `TELEGRAM_INTERACTIVE=false`를
+사용합니다. 원티드는 GitHub 호스팅 브라우저 요청을 차단하므로 제외하고, 상시 콜백
+프로세스가 없기 때문에 텔레그램 상태 버튼 대신 공고 링크만 표시합니다.
+
+사람인 직접 접속은 자동화 환경에서 차단될 수 있어 공개 공고 URL을 Jina Reader의 읽기
+전용 텍스트 변환 경로로 가져옵니다. 개인 정보나 지원서는 전송하지 않습니다.
 
 SQLite DB는 Actions 캐시에 보존됩니다. 캐시는 무료 MVP에 적합한 최선형 저장소이므로
 캐시가 정리되면 과거 공고가 한 번 재발송될 수 있습니다. 이 문제가 실제로 발생하면 무료

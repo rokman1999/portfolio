@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from job_radar.analyzer import LocalAnalyzer, OpenAIAnalyzer
-from job_radar.collectors import RememberCollector, WantedCollector
+from job_radar.collectors import RememberCollector, SaraminCollector, WantedCollector
 from job_radar.collectors.base import Collector
 from job_radar.config import Settings, load_settings
 from job_radar.database import Repository
@@ -42,8 +42,11 @@ def main() -> None:
             radar.collect_and_analyze()
             radar.send_pending(print_only=True)
         elif args.command == "run":
-            radar.collect_and_analyze()
-            radar.send_pending()
+            if radar.repository.has_sent_today(settings.preferences.schedule.timezone):
+                print("오늘 이미 발송하여 실행을 건너뜁니다.")
+            else:
+                radar.collect_and_analyze()
+                radar.send_pending()
         elif args.command == "collect":
             radar.collect_and_analyze()
         elif args.command == "send":
@@ -89,9 +92,11 @@ def build_radar(settings: Settings, *, command: str) -> JobRadar:
         collectors.append(WantedCollector(preferences.search_queries, headless=settings.headless))
     if needs_collection and "remember" in settings.enabled_collectors:
         collectors.append(RememberCollector(preferences.search_queries, headless=settings.headless))
+    if needs_collection and "saramin" in settings.enabled_collectors:
+        collectors.append(SaraminCollector(preferences.search_queries))
     if needs_collection and not collectors:
         repository.close()
-        raise ValueError("ENABLED_COLLECTORS에 wanted 또는 remember가 필요합니다.")
+        raise ValueError("ENABLED_COLLECTORS에 wanted, remember 또는 saramin이 필요합니다.")
     return JobRadar(
         collectors=collectors,
         analyzer=analyzer,

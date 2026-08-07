@@ -49,7 +49,7 @@ class Settings(BaseModel):
     telegram_interactive: bool = True
     database_url: str = "sqlite:///data/jobs.db"
     headless: bool = True
-    enabled_collectors: set[str] = Field(default_factory=lambda: {"wanted", "remember"})
+    enabled_collectors: set[str] = Field(default_factory=lambda: {"wanted", "remember", "saramin"})
 
 
 def load_dotenv(path: Path) -> None:
@@ -81,7 +81,7 @@ def load_settings(project_dir: Path, preferences_path: Path | None = None) -> Se
         headless=_env_bool("HEADLESS", default=True),
         enabled_collectors={
             name.strip().casefold()
-            for name in os.getenv("ENABLED_COLLECTORS", "wanted,remember").split(",")
+            for name in os.getenv("ENABLED_COLLECTORS", "wanted,remember,saramin").split(",")
             if name.strip()
         },
     )

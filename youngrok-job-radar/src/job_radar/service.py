@@ -74,6 +74,9 @@ class JobRadar:
 
     def send_pending(self, *, print_only: bool = False) -> int:
         schedule = self.preferences.schedule
+        if not print_only and self.repository.has_sent_today(schedule.timezone):
+            logger.info("send_skipped_already_sent_today")
+            return 0
         jobs = self.repository.pending_jobs(
             min_score=schedule.min_score,
             limit=schedule.max_jobs_per_day,
