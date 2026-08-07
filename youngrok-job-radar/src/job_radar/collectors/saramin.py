@@ -13,7 +13,7 @@ from job_radar.models import Job
 logger = logging.getLogger(__name__)
 
 SARAMIN_JOB_PATTERN = re.compile(
-    r"https://www\.saramin\.co\.kr/zf_user/jobs/(?:relay/)?view\?rec_idx=(\d+)"
+    r"https://www\.saramin\.co\.kr/zf_user/jobs/relay/view\?view_type=search&rec_idx=(\d+)"
 )
 
 
