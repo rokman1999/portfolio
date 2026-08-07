@@ -97,9 +97,19 @@ class OpenAIReputationResearcher:
             summary = _format_summary(candidate)
             if summary:
                 if site == "잡플래닛":
-                    source = ReputationSource(site="잡플래닛", summary=summary, url=source_url)
+                    source = ReputationSource(
+                        site="잡플래닛",
+                        rating=candidate.rating,
+                        summary=summary,
+                        url=source_url,
+                    )
                 else:
-                    source = ReputationSource(site="블라인드", summary=summary, url=source_url)
+                    source = ReputationSource(
+                        site="블라인드",
+                        rating=candidate.rating,
+                        summary=summary,
+                        url=source_url,
+                    )
                 results.append(source)
         self._cache[company] = results
         return results

@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from job_radar.database import Repository
-from job_radar.models import Job, JobAnalysis, JobStatus, SalaryEstimate
+from job_radar.models import Job, JobAnalysis, JobStatus, ReputationSource, SalaryEstimate
 
 
 def _job(**overrides: object) -> Job:
@@ -19,7 +19,17 @@ def _job(**overrides: object) -> Job:
     return Job.model_validate(values)
 
 
-def _analysis() -> JobAnalysis:
+def _analysis(*, jobplanet_rating: float | None = 3.0) -> JobAnalysis:
+    public_reputation = []
+    if jobplanet_rating is not None:
+        public_reputation = [
+            ReputationSource(
+                site="잡플래닛",
+                rating=jobplanet_rating,
+                summary=f"평점 {jobplanet_rating:.1f}/5",
+                url="https://www.jobplanet.co.kr/companies/123",
+            )
+        ]
     return JobAnalysis(
         is_open=True,
         is_full_time=True,
@@ -37,6 +47,7 @@ def _analysis() -> JobAnalysis:
             min=None, max=None, confidence="low", evidence="공고 내 근거 없음"
         ),
         company_reputation="정보 없음",
+        public_reputation=public_reputation,
         recommendation="적극 검토",
         fit_reasons=["브랜드 경험 연결"],
         risks=["회사 정보 부족"],
@@ -88,7 +99,7 @@ def test_pending_jobs_falls_back_to_one_unclear_employment(tmp_path: Path) -> No
         job_id, _ = repository.upsert_job(
             _job(employment_type=None, url="https://example.com/unclear")
         )
-        unclear = _analysis().model_copy(update={"is_full_time": None})
+        unclear = _analysis(jobplanet_rating=None).model_copy(update={"is_full_time": None})
         repository.save_analysis(job_id, unclear)
 
         jobs = repository.pending_jobs(min_score=90, limit=7)
@@ -121,5 +132,51 @@ def test_pending_jobs_prefers_strict_matches_over_unclear_fallback(tmp_path: Pat
         jobs = repository.pending_jobs(min_score=72, limit=7)
 
         assert [job.id for job in jobs] == [strict_id]
+    finally:
+        repository.close()
+
+
+def test_pending_jobs_excludes_jobplanet_rating_below_three(tmp_path: Path) -> None:
+    repository = Repository("sqlite:///jobs.db", base_dir=tmp_path)
+    try:
+        low_id, _ = repository.upsert_job(
+            _job(company="낮은회사", url="https://example.com/low")
+        )
+        boundary_id, _ = repository.upsert_job(
+            _job(company="경계회사", url="https://example.com/boundary")
+        )
+        repository.save_analysis(low_id, _analysis(jobplanet_rating=2.9))
+        repository.save_analysis(boundary_id, _analysis(jobplanet_rating=3.0))
+
+        jobs = repository.pending_jobs(min_score=72, limit=7)
+
+        assert [job.id for job in jobs] == [boundary_id]
+
+        repository.update_status(boundary_id, JobStatus.IGNORED)
+        assert repository.pending_jobs(min_score=72, limit=7) == []
+    finally:
+        repository.close()
+
+
+def test_missing_jobplanet_rating_is_only_used_as_fallback(tmp_path: Path) -> None:
+    repository = Repository("sqlite:///jobs.db", base_dir=tmp_path)
+    try:
+        unknown_id, _ = repository.upsert_job(
+            _job(company="평점미확인", url="https://example.com/unknown")
+        )
+        rated_id, _ = repository.upsert_job(
+            _job(company="평점확인", url="https://example.com/rated")
+        )
+        repository.save_analysis(unknown_id, _analysis(jobplanet_rating=None))
+        repository.save_analysis(rated_id, _analysis(jobplanet_rating=3.0))
+
+        strict_jobs = repository.pending_jobs(min_score=72, limit=7)
+
+        assert [job.id for job in strict_jobs] == [rated_id]
+
+        repository.update_status(rated_id, JobStatus.IGNORED)
+        fallback_jobs = repository.pending_jobs(min_score=72, limit=7)
+
+        assert [job.id for job in fallback_jobs] == [unknown_id]
     finally:
         repository.close()

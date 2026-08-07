@@ -1,4 +1,4 @@
-from job_radar.models import JobAnalysis, SalaryEstimate, make_fingerprint
+from job_radar.models import JobAnalysis, ReputationSource, SalaryEstimate, make_fingerprint
 
 
 def test_fingerprint_normalizes_spacing_and_punctuation() -> None:
@@ -30,3 +30,35 @@ def test_analysis_recalculates_total_and_recommendation() -> None:
 
     assert analysis.total_score == 72
     assert analysis.recommendation == "조건 확인 후 지원"
+
+
+def test_jobplanet_rating_reads_legacy_summary() -> None:
+    source = ReputationSource(
+        site="잡플래닛",
+        summary="평점 2.9/5 · 리뷰 10건",
+        url="https://www.jobplanet.co.kr/companies/123",
+    )
+    analysis = JobAnalysis(
+        is_open=True,
+        is_full_time=True,
+        is_uiux_role=False,
+        is_excluded_company=False,
+        uiux_ratio=10,
+        bx_ratio=80,
+        content_ratio=60,
+        role_fit_score=31,
+        company_score=24,
+        application_score=20,
+        risk_penalty=-3,
+        total_score=0,
+        salary_estimate=SalaryEstimate(
+            min=None, max=None, confidence="low", evidence="근거 없음"
+        ),
+        company_reputation="정보 없음",
+        public_reputation=[source],
+        recommendation="발송 제외",
+        fit_reasons=["브랜드 경험 연결"],
+        risks=["회사 정보 부족"],
+    )
+
+    assert analysis.jobplanet_rating == 2.9

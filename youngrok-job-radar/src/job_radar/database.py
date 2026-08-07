@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 
 from job_radar.models import Job, JobAnalysis, JobStatus
 
+MIN_JOBPLANET_RATING = 3.0
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -134,14 +136,23 @@ class Repository:
                 """
             ).fetchall()
         jobs = [_row_to_job(row) for row in rows]
+        analyzed = [(job, analysis_for(job)) for job in jobs]
         strict = [
             job
-            for job in jobs
+            for job, analysis in analyzed
             if job.score is not None
             and job.score >= min_score
-            and analysis_for(job).is_full_time is True
+            and analysis.is_full_time is True
+            and analysis.jobplanet_rating is not None
+            and analysis.jobplanet_rating >= MIN_JOBPLANET_RATING
         ]
-        return strict[:limit] if strict else jobs[:1]
+        fallback = [
+            job
+            for job, analysis in analyzed
+            if analysis.jobplanet_rating is None
+            or analysis.jobplanet_rating >= MIN_JOBPLANET_RATING
+        ]
+        return strict[:limit] if strict else fallback[:1]
 
     def get_job(self, job_id: int) -> Job | None:
         with self.lock:

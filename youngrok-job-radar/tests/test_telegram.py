@@ -115,9 +115,9 @@ def test_public_reputation_has_clickable_source() -> None:
         uiux_ratio=0,
         bx_ratio=70,
         content_ratio=40,
-        role_fit_score=25,
-        company_score=20,
-        application_score=20,
+        role_fit_score=35,
+        company_score=30,
+        application_score=25,
         risk_penalty=0,
         total_score=0,
         salary_estimate=SalaryEstimate(
@@ -152,5 +152,6 @@ def test_public_reputation_has_clickable_source() -> None:
     message = format_job(job, 1)
 
     assert "회사 평판·직원 후기" in message
+    assert "90점 · 조건 확인 후 지원" in message
     assert '<a href="https://www.teamblind.com/kr/company/test/reviews">원문</a>' in message
     assert "웹 공개 검색 요약" in message

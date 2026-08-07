@@ -66,6 +66,7 @@ class SalaryEstimate(BaseModel):
 
 class ReputationSource(BaseModel):
     site: Literal["잡플래닛", "블라인드"]
+    rating: float | None = Field(default=None, ge=0, le=5)
     summary: str = Field(min_length=1, max_length=240)
     url: str
 
@@ -101,6 +102,19 @@ class JobAnalysis(BaseModel):
     recommendation: Literal["당장 지원", "적극 검토", "조건 확인 후 지원", "발송 제외"]
     fit_reasons: list[str]
     risks: list[str]
+
+    @property
+    def jobplanet_rating(self) -> float | None:
+        source = next(
+            (item for item in self.public_reputation if item.site == "잡플래닛"),
+            None,
+        )
+        if source is None:
+            return None
+        if source.rating is not None:
+            return source.rating
+        match = re.search(r"평점\s*([0-5](?:\.\d+)?)\s*/\s*5", source.summary)
+        return float(match.group(1)) if match else None
 
     @model_validator(mode="after")
     def calculate_total_and_recommendation(self) -> JobAnalysis:
