@@ -11,7 +11,7 @@ from datetime import date
 from typing import Any
 
 from job_radar.database import Repository, analysis_for
-from job_radar.models import Job, JobStatus
+from job_radar.models import Job, JobStatus, ReputationSource
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +141,7 @@ def format_job(job: Job, rank: int) -> str:
     recommendation = (
         "조건 확인 후 지원" if analysis.is_full_time is None else analysis.recommendation
     )
+    reputation = _format_reputation(analysis.company_reputation, analysis.public_reputation)
     return (
         f"<b>🔥 오늘의 지원 추천 {rank}순위</b>\n\n"
         f"<b>{html.escape(job.company)}</b>\n"
@@ -149,11 +150,23 @@ def format_job(job: Job, rank: int) -> str:
         f"<b>조건</b>\n{html.escape(condition)}{employment_warning}\n\n"
         f"<b>왜 추천하나</b>\n{reasons}\n\n"
         f"<b>연봉 신호</b>\n{salary}\n{html.escape(estimate.evidence)}\n\n"
-        f"<b>회사 평판</b>\n{html.escape(analysis.company_reputation)}\n\n"
+        f"<b>회사 평판·직원 후기</b>\n{reputation}\n\n"
         f"<b>주의사항</b>\n{risks}\n\n"
         f"<b>마감일</b>\n{deadline}\n\n"
         f'<a href="{html.escape(job.url, quote=True)}">공고 확인하기</a>'
     )
+
+
+def _format_reputation(company_reputation: str, sources: list[ReputationSource]) -> str:
+    lines = [html.escape(company_reputation)]
+    for source in sources:
+        label = html.escape(source.site)
+        summary = html.escape(source.summary)
+        url = html.escape(source.url, quote=True)
+        lines.append(f'• <b>{label}</b>: {summary} · <a href="{url}">원문</a>')
+    if sources:
+        lines.append("<i>웹 공개 검색 요약이며 수치는 변동될 수 있습니다.</i>")
+    return "\n".join(lines)
 
 
 def keyboard_for(job: Job, *, interactive: bool = True) -> list[list[dict[str, str]]]:

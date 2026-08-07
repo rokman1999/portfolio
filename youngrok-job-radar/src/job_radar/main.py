@@ -9,6 +9,7 @@ from job_radar.collectors.base import Collector
 from job_radar.config import Settings, load_settings
 from job_radar.database import Repository
 from job_radar.logging_config import configure_logging
+from job_radar.reputation import OpenAIReputationResearcher
 from job_radar.sample import SampleCollector
 from job_radar.scheduler import serve
 from job_radar.service import JobRadar
@@ -76,6 +77,11 @@ def build_radar(settings: Settings, *, command: str) -> JobRadar:
         if needs_collection
         else LocalAnalyzer()
     )
+    reputation_researcher = (
+        OpenAIReputationResearcher(settings.openai_api_key, settings.openai_model)
+        if needs_collection and settings.reputation_search_enabled
+        else None
+    )
     telegram = None
     if settings.telegram_bot_token and settings.telegram_chat_id:
         telegram = TelegramClient(
@@ -103,6 +109,7 @@ def build_radar(settings: Settings, *, command: str) -> JobRadar:
         repository=repository,
         preferences=preferences,
         telegram=telegram,
+        reputation_researcher=reputation_researcher,
     )
 
 

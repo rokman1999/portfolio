@@ -5,6 +5,7 @@ import unicodedata
 from datetime import date, datetime
 from enum import StrEnum
 from typing import Literal
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -63,6 +64,24 @@ class SalaryEstimate(BaseModel):
     evidence: str
 
 
+class ReputationSource(BaseModel):
+    site: Literal["잡플래닛", "블라인드"]
+    summary: str = Field(min_length=1, max_length=240)
+    url: str
+
+    @model_validator(mode="after")
+    def require_expected_public_url(self) -> ReputationSource:
+        parsed = urlparse(self.url)
+        expected_host = {
+            "잡플래닛": "jobplanet.co.kr",
+            "블라인드": "teamblind.com",
+        }[self.site]
+        host = (parsed.hostname or "").removeprefix("www.")
+        if parsed.scheme != "https" or host != expected_host:
+            raise ValueError(f"{self.site}의 HTTPS 원문 URL이 필요합니다.")
+        return self
+
+
 class JobAnalysis(BaseModel):
     is_open: bool
     is_full_time: bool | None
@@ -78,6 +97,7 @@ class JobAnalysis(BaseModel):
     total_score: int = Field(ge=0, le=90)
     salary_estimate: SalaryEstimate
     company_reputation: str
+    public_reputation: list[ReputationSource] = Field(default_factory=list, max_length=2)
     recommendation: Literal["당장 지원", "적극 검토", "조건 확인 후 지원", "발송 제외"]
     fit_reasons: list[str]
     risks: list[str]
