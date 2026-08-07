@@ -5,6 +5,8 @@ on:
   schedule:
     # Sunday-Thursday 23:25 UTC = Monday-Friday 08:25 KST
     - cron: "25 23 * * 0-4"
+    # Backup: Monday-Friday 00:05 UTC = Monday-Friday 09:05 KST
+    - cron: "5 0 * * 1-5"
 
 concurrency:
   group: youngrok-job-radar
@@ -27,7 +29,7 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       TELEGRAM_ADMIN_CHAT_ID: ${{ secrets.TELEGRAM_ADMIN_CHAT_ID }}
       TELEGRAM_INTERACTIVE: "false"
-      ENABLED_COLLECTORS: remember
+      ENABLED_COLLECTORS: remember,saramin
       DATABASE_URL: sqlite:///data/jobs.db
       HEADLESS: "true"
 

@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from job_radar.models import Job, JobAnalysis, JobStatus
 
@@ -158,6 +159,17 @@ class Repository:
                 """,
                 (status.value, now, sent_at, job_id),
             )
+
+    def has_sent_today(self, timezone: str) -> bool:
+        local_start = datetime.now(ZoneInfo(timezone)).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        utc_start = local_start.astimezone(UTC).isoformat()
+        with self.lock:
+            row = self.connection.execute(
+                "SELECT 1 FROM jobs WHERE sent_at >= ? LIMIT 1", (utc_start,)
+            ).fetchone()
+        return row is not None
 
     def blacklist_company(self, company: str) -> None:
         key = _company_key(company)

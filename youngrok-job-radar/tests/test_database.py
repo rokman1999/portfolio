@@ -60,6 +60,7 @@ def test_repository_deduplicates_and_preserves_status(tmp_path: Path) -> None:
         assert stored is not None
         assert stored.url == "https://example.com/changed"
         assert stored.status is JobStatus.SENT
+        assert repository.has_sent_today("Asia/Seoul")
     finally:
         repository.close()
 
