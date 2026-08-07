@@ -1,4 +1,13 @@
-from job_radar.collectors.saramin import parse_saramin_markdown
+from job_radar.collectors.saramin import SARAMIN_JOB_PATTERN, parse_saramin_markdown
+
+
+def test_search_pattern_ignores_recommended_list_jobs() -> None:
+    markdown = """
+[브랜드 디자이너](https://www.saramin.co.kr/zf_user/jobs/relay/view?view_type=search&rec_idx=54582525&location=ts)
+[웹 퍼블리셔](https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=54417436&view_type=list)
+"""
+
+    assert SARAMIN_JOB_PATTERN.findall(markdown) == ["54582525"]
 
 
 def test_parse_saramin_markdown_extracts_safe_job_fields() -> None:
