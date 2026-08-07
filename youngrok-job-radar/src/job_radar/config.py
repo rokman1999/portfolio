@@ -47,6 +47,7 @@ class Settings(BaseModel):
     telegram_chat_id: str = ""
     telegram_admin_chat_id: str = ""
     telegram_interactive: bool = True
+    reputation_search_enabled: bool = True
     database_url: str = "sqlite:///data/jobs.db"
     headless: bool = True
     enabled_collectors: set[str] = Field(default_factory=lambda: {"wanted", "remember", "saramin"})
@@ -77,6 +78,7 @@ def load_settings(project_dir: Path, preferences_path: Path | None = None) -> Se
         telegram_chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
         telegram_admin_chat_id=os.getenv("TELEGRAM_ADMIN_CHAT_ID", ""),
         telegram_interactive=_env_bool("TELEGRAM_INTERACTIVE", default=True),
+        reputation_search_enabled=_env_bool("REPUTATION_SEARCH_ENABLED", default=True),
         database_url=os.getenv("DATABASE_URL", "sqlite:///data/jobs.db"),
         headless=_env_bool("HEADLESS", default=True),
         enabled_collectors={

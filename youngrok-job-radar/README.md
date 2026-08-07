@@ -9,8 +9,9 @@
 2. 상세 페이지 접근, 지원하기 버튼, 마감일, 정규직 여부를 먼저 검증합니다.
 3. 직무명이 선호 목록에 포함되고 명백한 UI/UX 직무가 아닌 공고만 AI로 분석합니다.
 4. 공고에 있는 근거만으로 UI/UX 비중, 적합도, 회사 신호, 연봉 신뢰도를 산출합니다.
-5. SQLite `fingerprint`로 중복을 막고 08:30에 상위 3~7개를 전송합니다.
-6. 텔레그램 버튼으로 관심·지원 예정·제외·회사 제외 상태를 저장합니다.
+5. 통과한 새 공고의 회사명으로 잡플래닛·블라인드 공개 검색 색인을 확인합니다.
+6. SQLite `fingerprint`로 중복을 막고 08:30에 상위 3~7개를 전송합니다.
+7. 텔레그램 버튼으로 관심·지원 예정·제외·회사 제외 상태를 저장합니다.
 
 엄격 기준을 통과한 공고가 0건이면 명백한 비정규직·마감·지원 불가·UI/UX 중심 직무를
 제외한 후보 중 최고점 1건을 보냅니다. 정규직 여부가 불명확하면 메시지에 확인 경고를
@@ -54,6 +55,7 @@ python -m job_radar dry-run
    TELEGRAM_BOT_TOKEN=...
    TELEGRAM_CHAT_ID=...
    TELEGRAM_ADMIN_CHAT_ID=...
+   REPUTATION_SEARCH_ENABLED=true
    ```
 
 `TELEGRAM_ADMIN_CHAT_ID`를 비우면 일반 채팅방으로 오류를 알립니다. 비밀값이 든 `.env`와
@@ -84,8 +86,10 @@ python -m job_radar serve
 개인 조건과 점수 기준은 `preferences.yaml`에서 수정합니다. OpenAI 모델은
 `OPENAI_MODEL`로 바꿀 수 있으며 기본값은 비용 민감한 일일 분류에 맞춘
 `gpt-5.6-luna`입니다. 구현은 OpenAI 공식
-[Responses API 구조화 출력](https://developers.openai.com/api/docs/guides/structured-outputs)의
-Pydantic 파싱 방식을 사용합니다.
+[Responses API 구조화 출력](https://developers.openai.com/api/docs/guides/structured-outputs)과
+[웹 검색](https://developers.openai.com/api/docs/guides/tools-web-search)의 Pydantic 파싱 방식을
+사용합니다. 직원 후기 검색은 기본 활성화되며, 필요하면
+`REPUTATION_SEARCH_ENABLED=false`로 끌 수 있습니다.
 
 AI는 최종 진실 공급원이 아닙니다. 아래 조건은 코드가 먼저 검증합니다.
 
@@ -131,7 +135,12 @@ DATABASE_URL=sqlite:////app/data/jobs.db
   공식 API/알림 메일 입력 방식으로 교체해야 합니다.
 - 사이트 DOM이 바뀌면 링크나 지원 버튼 탐지가 실패할 수 있습니다. 이 경우 잘못된 공고를
   보내지 않고 해당 공고를 제외합니다.
-- 평판·연봉 근거가 공고에 없으면 정보를 만들지 않습니다. 현재는 `정보 없음`으로 표시합니다.
+- 평판·연봉 근거가 없으면 정보를 만들지 않습니다. 직원 후기는 잡플래닛·블라인드의 공개
+  검색 색인만 요약하고 로그인·유료 콘텐츠·CAPTCHA를 우회하지 않습니다.
+- 정확히 일치하는 회사명과 실제 검색 출처 URL이 함께 검증된 결과만 표시합니다. 동명 회사나
+  계열사로 판단되면 후기 없이 발송합니다.
+- 후기 요약은 평점·리뷰 수·반복 신호를 참고하기 위한 정보이며 원문 링크에서 최종 확인해야
+  합니다. 검색 색인은 실제 페이지보다 늦게 갱신될 수 있습니다.
 - 입력 공고 본문은 OpenAI API로 전송됩니다. 개인 지원서나 민감정보는 수집 대상에 넣지
   마세요.
 
@@ -144,6 +153,7 @@ src/job_radar/
 ├── config.py         # YAML·환경변수
 ├── database.py       # SQLite 중복·상태·회사 블랙리스트
 ├── main.py           # CLI
+├── reputation.py     # 잡플래닛·블라인드 공개 웹 검색 요약
 ├── scheduler.py      # 08:20/08:30 스케줄
 ├── service.py        # 수집→검증→분석→발송 흐름
 ├── telegram.py       # 메시지·인라인 버튼·콜백
