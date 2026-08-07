@@ -139,7 +139,9 @@ def format_job(job: Job, rank: int) -> str:
         else ""
     )
     recommendation = (
-        "조건 확인 후 지원" if analysis.is_full_time is None else analysis.recommendation
+        "조건 확인 후 지원"
+        if analysis.is_full_time is None or analysis.jobplanet_rating is None
+        else analysis.recommendation
     )
     reputation = _format_reputation(analysis.company_reputation, analysis.public_reputation)
     return (
